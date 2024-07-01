@@ -1,38 +1,41 @@
-.App {
-  text-align: center;
+.orderbook {
+  /* width: 600px; */
 }
 
-.App-logo {
-  height: 40vmin;
-  pointer-events: none;
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
-  }
-}
-
-.App-header {
-  background-color: #282c34;
-  min-height: 100vh;
+.orderbook-container {
   display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  font-size: calc(10px + 2vmin);
-  color: white;
+  gap: 24px;
 }
 
-.App-link {
-  color: #61dafb;
+.orderbook-segment {
+  flex-basis: 50%;
+  border: 1px solid grey;
+  padding: 16px;
 }
 
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+
+.orderbook-entry, .orderbook-entries-header {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.orderbook-entries.reversed .orderbook-entry,
+.orderbook-entries.reversed .orderbook-entries-header {
+  flex-direction: row-reverse;
+  justify-content: flex-start;
+}
+
+.orderbook-entries-header {
+  font-size: large;
+  font-weight: bold;
+}
+
+.orderbook-entry span, .orderbook-entries-header span {
+  flex-basis: 25%;
+  text-align: right;
+}
+
+.orderbook-entry span:first-child, .orderbook-entries-header span:first-child {
+  text-align: center;
+
 }
