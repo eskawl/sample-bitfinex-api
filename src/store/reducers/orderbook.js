@@ -86,31 +86,48 @@ export const fetchOrderBook = createAsyncThunk(
       // Init socket
       let updatesChannelId = null;
 
-      socket = new WebSocket("wss://api-pub.bitfinex.com/ws/2"); // TODO: Make singleton instance
-      socket.addEventListener("message", (wsMessage) => {
-        const msgData = JSON.parse(wsMessage.data);
-        if (!updatesChannelId) {
-          // Wait for subscribe response with channel ID
-          const { event: eventName, channel, chanId } = msgData;
+      const connectSocket = () => {
+        socket = new WebSocket("wss://api-pub.bitfinex.com/ws/2");
 
-          if (eventName === "subscribed" && channel === "book") {
-            updatesChannelId = chanId;
-          }
-        } else {
-          // Wait for entries and process them
-          const [channelId, updateData] = msgData;
+        socket.addEventListener("message", (wsMessage) => {
+          const msgData = JSON.parse(wsMessage.data);
+          if (!updatesChannelId) {
+            // Wait for subscribe response with channel ID
+            const { event: eventName, channel, chanId } = msgData;
 
-          if (channelId === updatesChannelId) {
-            if (Array.isArray(updateData) && Array.isArray(updateData[0])) {
-              // This message is a snapshot
-              dispatch(updateEntries(updateData));
-            } else {
-              // This message is an update at a price
-              dispatch(updateEntry(updateData));
+            if (eventName === "subscribed" && channel === "book") {
+              updatesChannelId = chanId;
+            }
+          } else {
+            // Wait for entries and process them
+            const [channelId, updateData] = msgData;
+
+            if (channelId === updatesChannelId) {
+              if (Array.isArray(updateData) && Array.isArray(updateData[0])) {
+                // This message is a snapshot
+                dispatch(updateEntries(updateData));
+              } else {
+                // This message is an update at a price
+                dispatch(updateEntry(updateData));
+              }
             }
           }
-        }
-      });
+        });
+
+        socket.addEventListener("close", (event) => {
+          if (event.reason !== "explicit") {
+            console.log(
+              "Socket is closed but not explicitly. Attempting reconnection",
+              event.reason,
+            );
+            setTimeout(function () {
+              connectSocket();
+            }, 1000);
+          }
+        });
+      };
+
+      connectSocket();
 
       await waitForOpen(socket);
 
@@ -132,7 +149,7 @@ export const disconnectSocket = createAsyncThunk(
     { dispatch },
   ) => {
     if (socket) {
-      socket.close();
+      socket.close(1000, "explicit");
 
       // TODO: Maybe await for close?
       dispatch(setConnected(false));
