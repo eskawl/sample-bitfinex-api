@@ -1,9 +1,17 @@
 import { useDispatch, useSelector } from "react-redux";
 import { disconnectSocket, fetchOrderBook } from "./store/reducers/orderbook";
-import { useEffect } from "react";
 import cx from "classnames";
 
 const OrderBookSegment = ({ entries, title, reversed = false }) => {
+  const sortedEntries = Object.entries(entries);
+  sortedEntries.sort((a, b) => {
+    if (!reversed) {
+      return b[0] - a[0];
+    }
+
+    return a[0] - b[0];
+  });
+
   return (
     <div className="orderbook-segment">
       <h5>{title}</h5>
@@ -14,7 +22,7 @@ const OrderBookSegment = ({ entries, title, reversed = false }) => {
           {/* <span>Total</span> */}
           <span>Price</span>
         </div>
-        {Object.entries(entries).map(([price, info]) => (
+        {sortedEntries.map(([price, info]) => (
           <div key={price} className="orderbook-entry">
             <span>{info.count}</span>
             <span>{info.amount.toFixed(4)}</span>

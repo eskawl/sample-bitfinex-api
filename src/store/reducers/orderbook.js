@@ -37,6 +37,12 @@ export const orderbookSlice = createSlice({
     },
     updateEntry: (state, action) => {
       const [price, count, amount] = action.payload;
+      if (count === 0) {
+        delete state.entries.bid[price];
+        delete state.entries.ask[price];
+        return;
+      }
+
       if (amount > 0) {
         state.entries.bid[price] = {
           count,
@@ -47,9 +53,6 @@ export const orderbookSlice = createSlice({
           count,
           amount: amount * -1,
         };
-      } else {
-        delete state.entries.bid[price];
-        delete state.entries.ask[price];
       }
     },
   },
@@ -75,7 +78,11 @@ export const fetchOrderBook = createAsyncThunk(
     },
     { dispatch },
   ) => {
-    if (!socket) {
+    if (
+      !socket ||
+      socket.readyState === WebSocket.CLOSED ||
+      socket.readyState === WebSocket.CLOSING
+    ) {
       // Init socket
       let updatesChannelId = null;
 
